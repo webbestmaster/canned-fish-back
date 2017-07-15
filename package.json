@@ -1,0 +1,30 @@
+{
+  "name": "canned-fish-back",
+  "version": "0.0.1",
+  "description": "canned fish back",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webbestmaster/canned-fish-back.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/webbestmaster/canned-fish-back/issues"
+  },
+  "homepage": "https://github.com/webbestmaster/canned-fish-back#readme",
+  "dependencies": {
+    "express": "^4.15.2",
+    "socket.io": "^2.0.3"
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.2.3",
+    "eslint": "^4.2.0"
+  }
+}
