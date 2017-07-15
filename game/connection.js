@@ -52,6 +52,13 @@ class ConnectionWrapper extends MainModel {
 
         console.log('connection destroyed');
     }
+
+    onXY(data) {
+        const connectionWrapper = this;
+        const unit = connectionWrapper.get('unit');
+
+        unit.set(data);
+    }
 }
 
 module.exports = ConnectionWrapper;

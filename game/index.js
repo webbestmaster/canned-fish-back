@@ -4,7 +4,8 @@ const Unit = require('./unit');
 
 const attr = {
     connections: 'connections',
-    units: 'units'
+    units: 'units',
+    io: 'io'
 };
 
 class Game extends MainModel {
@@ -15,6 +16,8 @@ class Game extends MainModel {
 
         game.set(attr.connections, []);
         game.set(attr.units, []);
+
+        game.startEmit();
     }
 
     /**
@@ -67,7 +70,6 @@ class Game extends MainModel {
     listenConnection(connectionWrapper) {
         const game = this;
         const connection = connectionWrapper.getConnection();
-
         const unit = game.addUnit({
             id: connectionWrapper.get('user').id
         });
@@ -75,11 +77,12 @@ class Game extends MainModel {
         connectionWrapper.set('unit', unit);
 
         connection.on('disconnect', () => {
+            game.removeUnit(connectionWrapper.get('unit'));
             game.removeConnection(connectionWrapper);
             connectionWrapper.destroy();
         });
 
-        // connection.on('xy');
+        connection.on('xy', data => connectionWrapper.onXY(data));
 
         console.log('start to listening to connection');
 
@@ -102,6 +105,52 @@ class Game extends MainModel {
         console.log('unit created');
 
         return unit;
+    }
+
+    /**
+     *
+     * @param {Unit} unit instance
+     * @return {Game} game instance
+     */
+    removeUnit(unit) {
+        const game = this;
+        const units = game.get(attr.units);
+        const unitIndex = units.indexOf(unit);
+
+        if (unitIndex === -1) {
+            console.warn('unit was removed: unit is not exist');
+            return game;
+        }
+
+        units.splice(units.indexOf(unit), 1);
+
+        console.log('units was removed');
+
+        return game;
+    }
+
+    /**
+     *
+     * @return {Game} game instance
+     */
+    emit() {
+        const game = this;
+        const units = game.get(attr.units);
+        const io = game.get(attr.io);
+
+        io.emit('update', {
+            units: units.map(unit => unit.getAllAttributes())
+        });
+
+        return game;
+    }
+
+    /**
+     *
+     * @return {Game} game instance
+     */
+    startEmit() {
+        setInterval(() => this.emit(), 10);
     }
 }
 
