@@ -150,7 +150,7 @@ class Game extends MainModel {
      * @return {Game} game instance
      */
     startEmit() {
-        setInterval(() => this.emit(), 10);
+        setInterval(() => this.emit(), 16);
     }
 }
 
