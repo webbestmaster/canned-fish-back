@@ -1,10 +1,13 @@
+/* global setInterval */
 const MainModel = require('main-model');
 const ConnectionWrapper = require('./connection');
 const Unit = require('./unit');
+const gameData = require('./data.json');
 
 const attr = {
     connections: 'connections',
     units: 'units',
+    dots: 'dots',
     io: 'io'
 };
 
@@ -17,6 +20,7 @@ class Game extends MainModel {
         game.set(attr.connections, []);
         game.set(attr.units, []);
 
+        game.createDots();
         game.startEmit();
     }
 
@@ -76,6 +80,8 @@ class Game extends MainModel {
 
         connectionWrapper.set('unit', unit);
 
+        connection.emit('dots', game.get(attr.dots));
+
         connection.on('disconnect', () => {
             game.removeUnit(connectionWrapper.get('unit'));
             game.removeConnection(connectionWrapper);
@@ -133,13 +139,38 @@ class Game extends MainModel {
      *
      * @return {Game} game instance
      */
+    createDots() {
+        const game = this;
+        const dots = [];
+        let ii = 0;
+        const dotsNumber = 100;
+        const maxX = gameData.sea.width;
+        const maxY = gameData.sea.height;
+
+        for (;ii < dotsNumber; ii += 1) {
+            dots[ii] = [
+                Math.round(Math.random() * maxX),
+                Math.round(Math.random() * maxY)
+            ];
+        }
+
+        game.set(attr.dots, dots);
+
+        return game;
+    }
+
+    /**
+     *
+     * @return {Game} game instance
+     */
     emit() {
         const game = this;
         const units = game.get(attr.units);
         const io = game.get(attr.io);
 
         io.emit('update', {
-            units: units.map(unit => unit.getAllAttributes())
+            units: units.map(unit => unit.getAllAttributes()),
+            timestamp: Date.now()
         });
 
         return game;
@@ -150,7 +181,7 @@ class Game extends MainModel {
      * @return {Game} game instance
      */
     startEmit() {
-        setInterval(() => this.emit(), 16);
+        setInterval(() => this.emit(), 20);
     }
 }
 

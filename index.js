@@ -19,10 +19,9 @@ io.on('connection', socket => {
     });
 });
 */
+
 game.set('io', io);
 
 io.on('connection', socket => game.addConnection(socket));
 
-http.listen(port, () => {
-    console.log('listening on *:' + port);
-});
+http.listen(port, () => console.log('listening on *:' + port));
