@@ -88,7 +88,15 @@ class Game extends MainModel {
             connectionWrapper.destroy();
         });
 
-        connection.on('xy', data => connectionWrapper.onXY(data));
+        connection.on('xy', data => {
+            connectionWrapper.onXY(data);
+
+            const units = game.get(attr.units);
+            connection.emit('update', {
+                units: units.map(unit => unit.getAllAttributes()),
+                timestamp: Date.now()
+            });
+        });
 
         console.log('start to listening to connection');
 
@@ -168,10 +176,12 @@ class Game extends MainModel {
         const units = game.get(attr.units);
         const io = game.get(attr.io);
 
+/*
         io.emit('update', {
             units: units.map(unit => unit.getAllAttributes()),
             timestamp: Date.now()
         });
+*/
 
         return game;
     }
