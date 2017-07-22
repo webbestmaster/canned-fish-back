@@ -1,13 +1,13 @@
-/* global setInterval */
+/* global */
 const MainModel = require('main-model');
 const ConnectionWrapper = require('./connection');
 const Unit = require('./unit');
-const gameData = require('./data.json');
+// const gameData = require('./data.json');
 
 const attr = {
     connections: 'connections',
     units: 'units',
-    dots: 'dots',
+    // dots: 'dots',
     io: 'io'
 };
 
@@ -20,8 +20,8 @@ class Game extends MainModel {
         game.set(attr.connections, []);
         game.set(attr.units, []);
 
-        game.createDots();
-        game.startEmit();
+        // game.createDots();
+        // game.startEmit();
     }
 
     /**
@@ -74,13 +74,18 @@ class Game extends MainModel {
     listenConnection(connectionWrapper) {
         const game = this;
         const connection = connectionWrapper.getConnection();
-        const unit = game.addUnit({
-            id: connectionWrapper.get('user').id
+        const newUnit = game.addUnit({
+            id: connectionWrapper.get('user').id,
+            x: 0,
+            y: 0,
+            ts: Date.now(),
+            vx: 0,
+            vy: 0
         });
 
-        connectionWrapper.set('unit', unit);
+        connectionWrapper.set('unit', newUnit);
 
-        connection.emit('dots', game.get(attr.dots));
+        // connection.emit('dots', game.get(attr.dots));
 
         connection.on('disconnect', () => {
             game.removeUnit(connectionWrapper.get('unit'));
@@ -88,15 +93,31 @@ class Game extends MainModel {
             connectionWrapper.destroy();
         });
 
-        connection.on('xy', data => {
-            connectionWrapper.onXY(data);
+        connection.on('xy', ({vx, vy}) => {
+            const unit = connectionWrapper.get('unit');
+            const x0 = unit.get('x');
+            const y0 = unit.get('y');
+            const ts0 = unit.get('ts');
+            const now = Date.now();
+            const deltaT = now - ts0;
+            const x = x0 + deltaT * unit.get('vx') / 16; // 16! see front end way for count
+            const y = y0 + deltaT * unit.get('vy') / 16; // 16! see front end way for count
 
-            const units = game.get(attr.units);
-            connection.emit('update', {
-                units: units.map(unit => unit.getAllAttributes()),
-                timestamp: Date.now()
+            unit.set({
+                x,
+                y,
+                ts: now,
+                vx,
+                vy
             });
         });
+
+        connection.on('get-data', () =>
+            connection.emit('data', {
+                units: game.get(attr.units).map(unit => unit.getAllAttributes()),
+                ts: Date.now()
+            })
+        );
 
         console.log('start to listening to connection');
 
@@ -147,52 +168,59 @@ class Game extends MainModel {
      *
      * @return {Game} game instance
      */
-    createDots() {
-        const game = this;
-        const dots = [];
-        let ii = 0;
-        const dotsNumber = 100;
-        const maxX = gameData.sea.width;
-        const maxY = gameData.sea.height;
 
-        for (;ii < dotsNumber; ii += 1) {
-            dots[ii] = [
-                Math.round(Math.random() * maxX),
-                Math.round(Math.random() * maxY)
-            ];
+    /*
+        createDots() {
+            const game = this;
+            const dots = [];
+            let ii = 0;
+            const dotsNumber = 100;
+            const maxX = gameData.sea.width;
+            const maxY = gameData.sea.height;
+
+            for (;ii < dotsNumber; ii += 1) {
+                dots[ii] = [
+                    Math.round(Math.random() * maxX),
+                    Math.round(Math.random() * maxY)
+                ];
+            }
+
+            game.set(attr.dots, dots);
+
+            return game;
         }
-
-        game.set(attr.dots, dots);
-
-        return game;
-    }
-
-    /**
-     *
-     * @return {Game} game instance
-     */
-    emit() {
-        const game = this;
-        const units = game.get(attr.units);
-        const io = game.get(attr.io);
+    */
 
 /*
-        io.emit('update', {
-            units: units.map(unit => unit.getAllAttributes()),
-            timestamp: Date.now()
-        });
-*/
+    /!**
+     *
+     * @return {Game} game instance
+     *!/
+    emit() {
+        // const game = this;
+        // const units = game.get(attr.units);
+        // const io = game.get(attr.io);
+
+        /!*
+                io.emit('update', {
+                    units: units.map(unit => unit.getAllAttributes()),
+                    timestamp: Date.now()
+                });
+        *!/
 
         return game;
     }
+*/
 
     /**
      *
      * @return {Game} game instance
      */
-    startEmit() {
-        setInterval(() => this.emit(), 20);
-    }
+    /*
+        startEmit() {
+            setInterval(() => this.emit(), 20);
+        }
+    */
 }
 
 module.exports = Game;
